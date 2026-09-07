@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChemMaster - Đấu Trường Học Thuộc Hóa Học</title>
+  <meta name="description" content="Trò chơi học thuộc Hóa học trực quan: Ghi nhớ Bảng Acid, Gốc Acid, Hóa Trị và Dãy Hoạt Động Kim Loại với phát âm tiếng Anh IUPAC chuẩn.">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚗️</text></svg>">
+</head>
+<body>
+  <div class="lab-grid"></div>
+  <canvas id="confettiCanvas"></canvas>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header class="main-header">
+      <div class="brand">
+        <div class="brand-icon">⚗️</div>
+        <div class="brand-info">
+          <h1>ChemMaster</h1>
+          <p>Học Thuộc Acid, Gốc Acid & Dãy Kim Loại Qua Trò Chơi</p>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <button id="soundToggleBtn" class="icon-btn active" title="Bật/Tắt hiệu ứng âm thanh">
+          🔊
+        </button>
+        <button id="speechToggleBtn" class="icon-btn active" title="Bật/Tắt phát âm tiếng Anh IUPAC">
+          🗣️
+        </button>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs" role="tablist">
+      <button class="tab-btn active" data-tab="tab-metals" id="tabBtnMetals">
+        <span>🏆</span> Sắp Xếp Dãy Kim Loại
+        <span class="tab-badge">17 Nguyên tố</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-memory" id="tabBtnMemory">
+        <span>🃏</span> Lật Thẻ Trí Nhớ
+        <span class="tab-badge">Ghép Cặp</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-quiz" id="tabBtnQuiz">
+        <span>⚡</span> Đấu Trường Trắc Nghiệm
+        <span class="tab-badge">Tính Giờ</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-lab" id="tabBtnLab">
+        <span>📖</span> Flashcard & Tra Cứu
+        <span class="tab-badge">Phát Âm Chuẩn</span>
+      </button>
+    </nav>
+
+    <!-- TAB 1: SẮP XẾP DÃY KIM LOẠI -->
+    <section id="tab-metals" class="tab-content active">
+      <div class="section-banner">
+        <div class="section-title">
+          <h2><span>🥇</span> Thử Thách Dãy Hoạt Động Hóa Học</h2>
+          <p>Nhấp vào các nguyên tố trong kho để đặt vào đúng vị trí theo chiều hoạt động hóa học giảm dần!</p>
+        </div>
+        <div class="section-actions">
+          <div class="stat-pill score" id="metalsScorePill" style="padding: 6px 14px; background: rgba(0, 240, 255, 0.12); border-color: rgba(0, 240, 255, 0.4);">
+            <span class="icon">🎯</span>
+            <span>Điểm: <b id="metalsCurrentScore" style="color: #fff; font-size: 1.15rem; font-family: var(--font-mono);">0</b><span style="color: var(--text-dim); font-size: 0.85rem;"> / 100</span></span>
+            <span id="metalsScoreIncrement" style="color: #34d399; font-weight: 700; font-size: 0.85rem; margin-left: 4px; display: none;"></span>
+          </div>
+          <button id="toggleHintBtn" class="btn btn-secondary">
+            <span>💡</span> Gợi ý câu nhớ: <b id="hintStateText">BẬT</b>
+          </button>
+          <button id="resetMetalsBtn" class="btn btn-primary">
+            <span>🔄</span> Chơi lại vòng này
+          </button>
+        </div>
+      </div>
+
+      <div class="mnemonic-quote-box">
+        <span class="quote-icon">📜</span>
+        <div class="mnemonic-text">
+          Câu thần chú: <span>Khi Nào Bà Cần May Áo Záp Sắt Nhớ Sang Phố Hỏi Cửa Hàng Á Phi Âu</span>
+        </div>
+      </div>
+
+      <!-- Khung đích đặt nguyên tố -->
+      <div class="metal-slots-container" id="metalSlotsArea">
+        <!-- Tạo động từ JS -->
+      </div>
+
+      <!-- Kho thẻ nguyên tố bị xáo trộn -->
+      <div class="metal-pool-container">
+        <div class="pool-title">
+          <span>Kho nguyên tố (Nhấp vào để chọn xếp vào vị trí kế tiếp):</span>
+          <span id="metalPlacedCount">0 / 17</span>
+        </div>
+        <div class="metal-chip-grid" id="metalPoolArea">
+          <!-- Tạo động từ JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: LẬT THẺ TRÍ NHỚ -->
+    <section id="tab-memory" class="tab-content">
+      <div class="section-banner">
+        <div class="section-title">
+          <h2><span>🃏</span> Lật Thẻ Ghép Cặp Trí Nhớ</h2>
+          <p>Lật mở các thẻ bài bí mật để ghép cặp chính xác công thức với tên tiếng Anh hoặc hóa trị.</p>
+        </div>
+        <div class="section-actions">
+          <button id="resetMemoryBtn" class="btn btn-primary">
+            <span>🔄</span> Ván Mới
+          </button>
+        </div>
+      </div>
+
+      <div class="game-options-bar">
+        <label for="memoryTopicSelect" style="font-size: 0.9rem; color: var(--text-muted);">Chủ đề:</label>
+        <select id="memoryTopicSelect" class="select-dropdown">
+          <option value="acids">Công thức Acid ⟷ Tên IUPAC</option>
+          <option value="radicals">Gốc Acid ⟷ Tên & Hóa Trị</option>
+          <option value="metals">Kim Loại ⟷ Tên Tiếng Anh & Hóa Trị</option>
+        </select>
+
+        <label for="memorySizeSelect" style="font-size: 0.9rem; color: var(--text-muted); margin-left: 10px;">Số thẻ:</label>
+        <select id="memorySizeSelect" class="select-dropdown">
+          <option value="12">12 thẻ (6 cặp - Nhanh gọn)</option>
+          <option value="16" selected>16 thẻ (8 cặp - Tiêu chuẩn)</option>
+          <option value="20">20 thẻ (10 cặp - Cao thủ)</option>
+        </select>
+
+        <div class="stat-pill score" id="memoryScorePill" style="padding: 6px 14px; background: rgba(0, 240, 255, 0.12); border-color: rgba(0, 240, 255, 0.4); margin-left: auto;">
+          <span class="icon">🎯</span>
+          <span>Điểm: <b id="memoryCurrentScore" style="color: #fff; font-size: 1.15rem; font-family: var(--font-mono);">0</b><span style="color: var(--text-dim); font-size: 0.85rem;"> / 100</span></span>
+          <span id="memoryScoreIncrement" style="color: #34d399; font-weight: 700; font-size: 0.85rem; margin-left: 4px; display: none;"></span>
+        </div>
+        <div class="stat-pill">
+          <span>Lượt lật: <b id="memoryMoves" style="color: var(--neon-cyan);">0</b></span>
+        </div>
+        <div class="stat-pill">
+          <span>Thời gian: <b id="memoryTimer" style="color: var(--neon-amber);">00:00</b></span>
+        </div>
+      </div>
+
+      <div class="memory-grid grid-16" id="memoryGrid">
+        <!-- Render động từ JS -->
+      </div>
+    </section>
+
+    <!-- TAB 3: ĐẤU TRƯỜNG HỌC THUỘC & TRẮC NGHIỆM -->
+    <section id="tab-quiz" class="tab-content">
+      <div class="section-banner">
+        <div class="section-title">
+          <h2><span>⚡</span> Đấu Trường Học Thuộc Hóa Học</h2>
+          <p>Luyện tập trắc nghiệm và tự gõ bàn phím để nhớ sâu 100% công thức, tên IUPAC và hóa trị!</p>
+        </div>
+        <div class="section-actions">
+          <button id="restartQuizBtn" class="btn btn-primary">
+            <span>🔄</span> Bắt Đầu Bộ Mới
+          </button>
+        </div>
+      </div>
+
+      <div class="game-options-bar" style="max-width: 800px; margin: 0 auto 18px auto;">
+        <label for="quizTypeSelect" style="font-size: 0.9rem; color: var(--text-muted);">Hình thức:</label>
+        <select id="quizTypeSelect" class="select-dropdown">
+          <option value="mixed" selected>🔀 Hỗn hợp (Trắc nghiệm + Gõ phím)</option>
+          <option value="typing">⌨️ Chuyên Tự Gõ Bàn Phím (Học sâu)</option>
+          <option value="choice">🔘 Chuyên Trắc Nghiệm 4 đáp án</option>
+        </select>
+
+        <label for="quizCountSelect" style="font-size: 0.9rem; color: var(--text-muted); margin-left: 10px;">Số câu:</label>
+        <select id="quizCountSelect" class="select-dropdown">
+          <option value="20" selected>20 câu (Phổ biến)</option>
+          <option value="30">30 câu (Toàn diện)</option>
+          <option value="50">50 câu (Thử thách lớn)</option>
+          <option value="all">Tất cả mọi chất (Marathon 70+ câu)</option>
+        </select>
+      </div>
+
+      <div class="quiz-arena">
+        <div class="quiz-top-bar">
+          <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+            <div class="quiz-progress">
+              Câu hỏi: <span id="quizCurrentNum" style="color: #fff;">1</span> / <span id="quizTotalNum">20</span>
+            </div>
+            <!-- Điểm số trực tiếp trong trò chơi (thang điểm 100 chia đều) -->
+            <div class="stat-pill score" id="quizScorePill" style="padding: 6px 14px; background: rgba(0, 240, 255, 0.12); border-color: rgba(0, 240, 255, 0.4);">
+              <span class="icon">🎯</span>
+              <span>Điểm: <b id="quizCurrentScore" style="color: #fff; font-size: 1.15rem; font-family: var(--font-mono);">0</b><span style="color: var(--text-dim); font-size: 0.85rem;"> / 100</span></span>
+              <span id="quizScoreIncrement" style="color: #34d399; font-weight: 700; font-size: 0.85rem; margin-left: 4px; display: none;">+5đ</span>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <select id="quizTimeLimitSelect" class="select-dropdown" style="padding: 6px 10px; font-size: 0.85rem;">
+              <option value="30" selected>⏱️ 30 giây (Mặc định)</option>
+              <option value="45">⏱️ 45 giây (Thoải mái)</option>
+              <option value="15">⏱️ 15 giây (Nhanh)</option>
+              <option value="10">⏱️ 10 giây (Cực nhanh)</option>
+            </select>
+            <div class="timer-wrapper">
+              <span>⏳</span>
+              <span id="quizTimerVal">30</span>s
+            </div>
+          </div>
+        </div>
+
+        <div class="timer-bar-container">
+          <div class="timer-bar" id="quizTimerBar"></div>
+        </div>
+
+        <div class="quiz-question-box">
+          <div class="quiz-question-category" id="quizCategory">Chủ đề: Acid & Gốc Acid</div>
+          <div class="quiz-question-title" id="quizQuestionText">
+            Đang tải câu hỏi...
+          </div>
+        </div>
+
+        <!-- 1. Container cho câu hỏi trắc nghiệm A B C D -->
+        <div class="quiz-options-grid" id="quizOptionsContainer">
+          <!-- 4 nút đáp án A B C D từ JS -->
+        </div>
+
+        <!-- 2. Container cho câu hỏi tự gõ bàn phím -->
+        <div class="quiz-typing-box" id="quizTypingContainer" style="display: none;">
+          <div class="typing-input-row">
+            <input type="text" id="quizTypingInput" class="quiz-typing-input" placeholder="Gõ câu trả lời của bạn vào đây rồi bấm Enter..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+            <button id="quizSubmitTypingBtn" class="btn btn-primary" style="padding: 12px 24px; font-size: 1rem;">
+              Kiểm Tra ↵
+            </button>
+          </div>
+          <div class="quick-symbols-bar">
+            <span class="symbol-label">Ký hiệu nhanh:</span>
+            <button type="button" class="symbol-btn" data-sym="₂">₂</button>
+            <button type="button" class="symbol-btn" data-sym="₃">₃</button>
+            <button type="button" class="symbol-btn" data-sym="₄">₄</button>
+            <button type="button" class="symbol-btn" data-sym="⁻">⁻</button>
+            <button type="button" class="symbol-btn" data-sym="²⁻">²⁻</button>
+            <button type="button" class="symbol-btn" data-sym="³⁻">³⁻</button>
+            <span class="symbol-tip">(hoặc gõ số thường: H2SO4, SO4 2- đều đúng!)</span>
+          </div>
+        </div>
+
+        <div class="quiz-explanation" id="quizExplanation">
+          <!-- Lời giải thích chi tiết sau khi bấm chọn / gõ xong -->
+        </div>
+
+        <div style="margin-top: 24px; display: flex; justify-content: flex-end;">
+          <button id="quizNextBtn" class="btn btn-primary" style="display: none;">
+            Câu Tiếp Theo ➔
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: FLASHCARD 3D & TRA CỨU -->
+    <section id="tab-lab" class="tab-content">
+      <div class="section-banner">
+        <div class="section-title">
+          <h2><span>📖</span> Thư Viện Tra Cứu & Flashcard 3D</h2>
+          <p>Lật thẻ 3D để ôn bài nhanh và bấm vào biểu tượng loa để nghe phát âm tiếng Anh chuẩn quốc tế!</p>
+        </div>
+        <div class="section-actions">
+          <button id="switchFcDeckBtn" class="btn btn-purple">
+            <span id="fcDeckName">Đổi sang: Dãy Kim Loại</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Flashcard 3D Stage -->
+      <div class="flashcard-stage">
+        <div class="flashcard-3d" id="flashcardElement" title="Bấm vào thẻ để lật mặt sau">
+          <!-- Mặt trước -->
+          <div class="fc-face fc-front">
+            <div class="fc-header">
+              <span class="badge-tag badge-strong" id="fcTypeBadge">Mạnh</span>
+              <button class="speaker-btn-inline" id="fcSpeakBtn" title="Phát âm tiếng Anh">🔊</button>
+            </div>
+            <div class="fc-center">
+              <div class="fc-formula" id="fcFormula">H<sub>2</sub>SO<sub>4</sub></div>
+              <div class="fc-sub" id="fcSub">sulfuric acid</div>
+            </div>
+            <div class="fc-footer">
+              <span>Mặt trước</span>
+              <span>Bấm để xem gốc & hóa trị ↺</span>
+            </div>
+          </div>
+
+          <!-- Mặt sau -->
+          <div class="fc-face fc-back">
+            <div class="fc-header">
+              <span class="badge-tag badge-valence" id="fcBackCategory">Gốc Acid & Hóa Trị</span>
+              <span style="font-size: 0.8rem; color: var(--text-dim);">Mặt sau</span>
+            </div>
+            <div class="fc-center" id="fcBackDetails">
+              <!-- Nội dung mặt sau từ JS -->
+            </div>
+            <div class="fc-footer">
+              <span>Nhấn thẻ để lật lại ↻</span>
+              <span id="fcCounter">1 / 17</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="fc-nav-controls">
+          <button id="fcPrevBtn" class="btn btn-secondary">◀ Thẻ trước</button>
+          <button id="fcFlipBtn" class="btn btn-primary">🔄 Lật thẻ</button>
+          <button id="fcNextBtn" class="btn btn-secondary">Thẻ tiếp ▶</button>
+        </div>
+      </div>
+
+      <!-- Toolbar tìm kiếm & lọc bảng -->
+      <div class="lab-toolbar">
+        <div class="search-input-wrapper">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="chemSearchInput" class="search-input" placeholder="Tìm công thức, tên tiếng Anh, hóa trị, câu nhớ...">
+        </div>
+        <div class="filter-tags">
+          <button class="filter-tag active" data-filter="all">Tất cả</button>
+          <button class="filter-tag" data-filter="acid-strong">Acid Mạnh</button>
+          <button class="filter-tag" data-filter="acid-weak">Acid Yếu</button>
+          <button class="filter-tag" data-filter="metals">Dãy Kim Loại</button>
+          <button class="filter-tag" data-filter="radicals">Gốc Acid</button>
+        </div>
+      </div>
+
+      <!-- Bảng dữ liệu tra cứu đầy đủ -->
+      <div class="table-responsive">
+        <table class="chem-table">
+          <thead>
+            <tr>
+              <th>Công thức / Ký hiệu</th>
+              <th>Tên Tiếng Anh (IUPAC)</th>
+              <th>Phân loại / Câu nhớ</th>
+              <th>Gốc Acid / Hóa Trị</th>
+              <th>Tên Gốc Acid</th>
+              <th>Phát âm</th>
+            </tr>
+          </thead>
+          <tbody id="chemTableBody">
+            <!-- Render động từ JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- MODAL CHIẾN THẮNG -->
+  <div class="modal-overlay" id="victoryModal">
+    <div class="modal-card">
+      <div class="modal-icon-crown">🏆</div>
+      <h3 id="modalTitle">Xuất Sắc!</h3>
+      <p id="modalDesc">Bạn đã hoàn thành thử thách ghi nhớ!</p>
+
+      <div class="modal-stats-grid">
+        <div class="modal-stat-box">
+          <div class="val" id="modalScoreVal">+250</div>
+          <div class="lbl">Điểm thưởng</div>
+        </div>
+        <div class="modal-stat-box">
+          <div class="val" id="modalTimeVal">01:15</div>
+          <div class="lbl">Thời gian</div>
+        </div>
+        <div class="modal-stat-box">
+          <div class="val" id="modalAccuracyVal">100%</div>
+          <div class="lbl">Chính xác</div>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 12px; justify-content: center;">
+        <button id="modalPlayAgainBtn" class="btn btn-primary">Chơi Lại Vòng Này</button>
+        <button id="modalNextModeBtn" class="btn btn-secondary">Khám Phá Chế Độ Khác</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="audio.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
